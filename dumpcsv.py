@@ -40,8 +40,9 @@ i2caddrs = {
 # Attempt to detect related transactions because they are close to each other
 RELATED_DELTA = .0005
    
+skiplist = []
 #skiplist = ['rt5640', 'max77663']
-skiplist = ['rt5640','unknown 1','bq27541','max77663','at24','dummy','notinkernel1','notinkernel2', 'nct1008']
+#skiplist = ['rt5640','unknown 1','bq27541','max77663','at24','dummy','notinkernel1','notinkernel2', 'nct1008']
 #allskiplist = ['rt5640','unknown 1','bq27541','smb347','max77663','at24','dummy','notinkernel1','notinkernel2', 'nct1008']
 #skiplist = ['rt5640','unknown 1','bq27541','smb347','max77663','at24','dummy', 'nct1008']
 #skiplist = ['rt5640','unknown 1','bq27541','smb347','at24','dummy','notinkernel1','notinkernel2', 'nct1008']

@@ -78,8 +78,40 @@ class MAX77663:
         0x40:'MAX77663_REG_GPIO_ALT',
         0x41:'MAX77663_REG_ONOFF_CFG1',
         0x42:'MAX77663_REG_ONOFF_CFG2',
+		0x43:'MAX77663_REG_FPS_CFG0',
+		0x44:'MAX77663_REG_FPS_CFG1',
+		0x45:'MAX77663_REG_FPS_CFG2',
+		0x46:'MAX77663_REG_FPS_LDO0',
+		0x47:'MAX77663_REG_FPS_LDO1',
+		0x48:'MAX77663_REG_FPS_LDO2',
+		0x49:'MAX77663_REG_FPS_LDO3',
+		0x4A:'MAX77663_REG_FPS_LDO4',
+		0x4B:'MAX77663_REG_FPS_LDO5',
+		0x4C:'MAX77663_REG_FPS_LDO6',
+		0x4D:'MAX77663_REG_FPS_LDO7',
+		0x4E:'MAX77663_REG_FPS_LDO8',
+		0x4F:'MAX77663_REG_FPS_SD0',
+		0x50:'MAX77663_REG_FPS_SD1',
+		0x51:'MAX77663_REG_FPS_SD2',
+		0x52:'MAX77663_REG_FPS_SD3',
+		0x53:'MAX77663_REG_FPS_SD4',
         0x5C:'MAX77663_REG_CHIP_IDENT4',
+		0x5D:'MAX77663_REG_CID5'
 }
+
+    max77663_power_mode = {
+        0:'DISABLE',
+        1:'GLPM',
+        2:'LPM',
+        3:'NORMAL'
+    }
+
+    max77663_slew_rate = {
+        0:'13.75',
+        1:'27.5',
+        2:'55',
+        3:'100'
+    }
 
 
 
@@ -128,6 +160,23 @@ class MAX77663:
         print
         return
 
+    def dump_voltage(self, data, min, step):
+        print "[uV = %d]" % ((data * step) + min),
+        return
+
+    def dump_sd_cfg(self, data):
+        print "[Power mode = %s]" % (self.max77663_power_mode[(data & 0x30) >> 4]),
+        print "[Slew rate = %s]" % (self.max77663_slew_rate[(data & 0xc0) >> 6]),
+        if data & 0x04:
+            print "[Forced PWM]",
+        if data & 0x01:
+            print "[Active-Discharge Mode]",
+        return
+
+    def dump_ldo_cfg(self, data, step):
+        self.dump_voltage(data & 0x3f, 800000, step)
+        print "[Power mode = %s]" % (self.max77663_power_mode[(data & 0xc0) >> 6]),
+        return
 
     def finish_register_access(self, deltatime, rw, data):
         if rw == "Read":
@@ -135,7 +184,31 @@ class MAX77663:
         else:
             rwtext = "(W)"
         print "max77663 : %s %s, data = 0x%0.2x" % (self.regname.ljust(12), rwtext,data),
-        self.dump_generic(data)
+        if ((self.temp_register == 0x16) or (self.temp_register == 0x18) or (self.temp_register == 0x19) or (self.temp_register == 0x1a)): # SD0, SD2, SD3, SD4
+            self.dump_voltage(data & 0xff, 600000, 12500)
+        elif self.temp_register == 0x17: # SD1
+            self.dump_voltage(data & 0x3f, 800000, 12500)
+        elif (self.temp_register >= 0x1D) and (self.temp_register <= 0x21): # SDx_CFG
+            self.dump_sd_cfg(data)
+        elif self.temp_register == 0x23: # LDO0_CFG
+            self.dump_ldo_cfg(data, 25000);
+        elif self.temp_register == 0x25: # LDO1_CFG
+            self.dump_ldo_cfg(data, 25000);
+        elif self.temp_register == 0x27: # LDO2_CFG
+            self.dump_ldo_cfg(data, 50000);
+        elif self.temp_register == 0x29: # LDO3_CFG
+            self.dump_ldo_cfg(data, 50000);
+        elif self.temp_register == 0x2b: # LDO4_CFG
+            self.dump_ldo_cfg(data, 50000);
+        elif self.temp_register == 0x2d: # LDO5_CFG
+            self.dump_ldo_cfg(data, 50000);
+        elif self.temp_register == 0x2f: # LDO6_CFG
+            self.dump_ldo_cfg(data, 50000);
+        elif self.temp_register == 0x31: # LDO7_CFG
+            self.dump_ldo_cfg(data, 50000);
+        elif self.temp_register == 0x33: # LDO8_CFG
+            self.dump_ldo_cfg(data, 50000);
+        print
 
         self.in_reg_transaction = False
         return
